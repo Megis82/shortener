@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"internal/code"
+	"internal/config"
 	"internal/storage"
 
 	"github.com/go-chi/chi/v5"
@@ -16,7 +17,7 @@ func ProcessPost(w http.ResponseWriter, r *http.Request) {
 	hashString := code.CodeString(string(body))
 	storage.Add(hashString, string(body))
 
-	retBody := fmt.Sprintf("http://localhost:8080/%s", hashString)
+	retBody := fmt.Sprintf("%s/%s", config.ServerConfig.BaseUrl, hashString)
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(201)
 	w.Write([]byte(retBody))

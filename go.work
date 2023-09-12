@@ -5,3 +5,4 @@ use ./cmd/shortener
 use ./internal/storage
 use ./internal/handlers
 use ./internal/code
+use ./internal/config
