@@ -57,7 +57,7 @@ func TestMainPage(t *testing.T) {
 			requestPost := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(test.body))
 
 			wPost := httptest.NewRecorder()
-			handlers.MainPage(wPost, requestPost)
+			handlers.ProcessPost(wPost, requestPost)
 
 			resPost := wPost.Result()
 
@@ -72,7 +72,7 @@ func TestMainPage(t *testing.T) {
 			requestGet := httptest.NewRequest(http.MethodGet, string(responseBody), strings.NewReader(test.body))
 
 			wGet := httptest.NewRecorder()
-			handlers.MainPage(wGet, requestGet)
+			handlers.ProcessGet(wGet, requestGet)
 
 			resGet := wGet.Result()
 			assert.Equal(t, resGet.StatusCode, test.wantGet.code)

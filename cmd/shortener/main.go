@@ -3,6 +3,8 @@ package main
 import (
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
+
 	"internal/handlers"
 	"internal/storage"
 )
@@ -11,11 +13,12 @@ func main() {
 
 	storage.Init()
 
-	mux := http.NewServeMux()
+	router := chi.NewRouter()
 
-	mux.HandleFunc(`/`, handlers.MainPage)
+	handlers.InitRouters(router)
 
-	err := http.ListenAndServe(`:8080`, mux)
+	err := http.ListenAndServe(`:8080`, router)
+
 	if err != nil {
 		panic(err)
 	}

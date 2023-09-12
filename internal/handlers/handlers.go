@@ -7,9 +7,11 @@ import (
 
 	"internal/code"
 	"internal/storage"
+
+	"github.com/go-chi/chi/v5"
 )
 
-func processPost(w http.ResponseWriter, r *http.Request) {
+func ProcessPost(w http.ResponseWriter, r *http.Request) {
 	body, _ := io.ReadAll(r.Body)
 	hashString := code.CodeString(string(body))
 	storage.Add(hashString, string(body))
@@ -20,21 +22,15 @@ func processPost(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(retBody))
 }
 
-func processGet(w http.ResponseWriter, r *http.Request) {
-	body := r.URL.Path[1:]
+func ProcessGet(w http.ResponseWriter, r *http.Request) {
+	body := chi.URLParam(r, "shortURL")
+	fmt.Println(body)
 	w.Header().Set("Content-Type", "text/plain")
 	redirectURL := storage.Find(body)
 	http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
 }
 
-func MainPage(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost {
-		processPost(w, r)
-	} else if r.Method == http.MethodGet {
-		processGet(w, r)
-	} else {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
+func InitRouters(router *chi.Mux) {
+	router.Get("/{shortURL}", ProcessGet)
+	router.Post("/", ProcessPost)
 }
