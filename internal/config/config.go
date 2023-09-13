@@ -10,7 +10,7 @@ import (
 type Config struct {
 	NetAddress net.IP
 	Port       int
-	BaseUrl    string
+	BaseURL    string
 }
 
 var ServerConfig Config
@@ -19,7 +19,7 @@ func ParseConfig() {
 
 	var addr string
 	flag.StringVar(&addr, "a", "localhost:8080", "network address")
-	flag.StringVar(&ServerConfig.BaseUrl, "b", "http://localhost:8080/", "base URL")
+	flag.StringVar(&ServerConfig.BaseURL, "b", "http://localhost:8080/", "base URL")
 	flag.Parse()
 
 	addrSlice := strings.Split(addr, ":")

@@ -17,7 +17,7 @@ func ProcessPost(w http.ResponseWriter, r *http.Request) {
 	hashString := code.CodeString(string(body))
 	storage.Add(hashString, string(body))
 
-	retBody := fmt.Sprintf("%s/%s", config.ServerConfig.BaseUrl, hashString)
+	retBody := fmt.Sprintf("%s%s", config.ServerConfig.BaseURL, hashString)
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(201)
 	w.Write([]byte(retBody))

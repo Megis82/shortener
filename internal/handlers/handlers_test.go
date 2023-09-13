@@ -76,6 +76,8 @@ func TestMainPage(t *testing.T) {
 			handlers.ProcessGet(wGet, requestGet)
 
 			resGet := wGet.Result()
+			defer resGet.Body.Close()
+
 			assert.Equal(t, resGet.StatusCode, test.wantGet.code)
 
 			require.NoError(t, err)
