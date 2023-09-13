@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -19,7 +18,8 @@ func main() {
 	config.ParseConfig()
 	handlers.InitRouters(router)
 
-	err := http.ListenAndServe(fmt.Sprintf("%s:%s", config.ServerConfig.NetAddress.String(), fmt.Sprint(config.ServerConfig.Port)), router)
+	//err := http.ListenAndServe(fmt.Sprintf("%s:%s", config.ServerConfig.NetAddress.String(), fmt.Sprint(config.ServerConfig.Port)), router)
+	err := http.ListenAndServe(config.ServerConfig.NetAddress, router)
 
 	if err != nil {
 		panic(err)
