@@ -6,9 +6,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"internal/config"
-	"internal/handlers"
-	"internal/storage"
+	"github.com/Megis82/shortener/internal/config"
+	"github.com/Megis82/shortener/internal/handlers"
+	"github.com/Megis82/shortener/internal/storage"
 )
 
 func main() {

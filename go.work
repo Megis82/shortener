@@ -1,8 +1,0 @@
-go 1.18
-
-use ./cmd/shortener
-
-use ./internal/storage
-use ./internal/handlers
-use ./internal/code
-use ./internal/config

@@ -5,11 +5,11 @@ import (
 	"io"
 	"net/http"
 
-	"internal/code"
-	"internal/config"
-	"internal/storage"
+	"github.com/Megis82/shortener/internal/code"
+	"github.com/Megis82/shortener/internal/config"
+	"github.com/Megis82/shortener/internal/storage"
 
-	"github.com/go-chi/chi/v5"
+	chi "github.com/go-chi/chi/v5"
 )
 
 func ProcessPost(w http.ResponseWriter, r *http.Request) {

@@ -1,13 +1,14 @@
 package handlers_test
 
 import (
-	"internal/handlers"
-	"internal/storage"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/Megis82/shortener/internal/handlers"
+	"github.com/Megis82/shortener/internal/storage"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
