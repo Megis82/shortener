@@ -25,7 +25,9 @@ func ProcessPost(w http.ResponseWriter, r *http.Request) {
 
 func ProcessGet(w http.ResponseWriter, r *http.Request) {
 	body := chi.URLParam(r, "shortURL")
-	fmt.Println(body)
+	//fmt.Println(body, " body fron inner")
+	//shortURL := strings.TrimPrefix(r.URL.Host, "/")
+	//fmt.Println(r.URL., " url from ")
 	w.Header().Set("Content-Type", "text/plain")
 	redirectURL := storage.Find(body)
 	http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
