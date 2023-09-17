@@ -86,16 +86,8 @@ func TestMainPage(t *testing.T) {
 				return
 			}
 
-			// Удаление домена
 			u.Host = ""
-
-			// Удаление порта
-			//u.Port = ""
-
-			// Удаление протокола
 			u.Scheme = ""
-
-			// Получение обновленной URL
 			newURL := u.String()[1:]
 
 			requestGet := httptest.NewRequest(http.MethodGet, "/{shortURL}", nil)
@@ -109,10 +101,10 @@ func TestMainPage(t *testing.T) {
 
 			resGet := wGet.Result()
 
-			fmt.Println("Заголовки:")
-			for key, value := range resGet.Header {
-				fmt.Printf("%s: %s\n", key, value)
-			}
+			// fmt.Println("Заголовки:")
+			// for key, value := range resGet.Header {
+			// 	fmt.Printf("%s: %s\n", key, value)
+			// }
 
 			defer resGet.Body.Close()
 
@@ -130,24 +122,3 @@ func TestMainPage(t *testing.T) {
 		})
 	}
 }
-
-// server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 	http.Redirect(w, r, "https://example.com", http.StatusMovedPermanently)
-//    }))
-
-//    // Создаем клиент с настройкой запрета редиректа
-//    client := &http.Client{
-// 	CheckRedirect: func(req *http.Request, via []*http.Request) error {
-// 	 return http.ErrUseLastResponse
-// 	},
-//    }
-
-//    // Создаем запрос к серверу
-//    req, _ := http.NewRequest("GET", server.URL, nil)
-
-//    // Отправляем запрос
-//    resp, err := client.Do(req)
-//    if err != nil {
-// 	fmt.Println("Error:", err)
-// 	return
-//    }

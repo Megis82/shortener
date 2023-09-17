@@ -17,7 +17,15 @@ func ProcessPost(w http.ResponseWriter, r *http.Request) {
 	hashString := code.CodeString(string(body))
 	storage.Add(hashString, string(body))
 
-	retBody := fmt.Sprintf("%s%s", config.ServerConfig.BaseURL, hashString)
+	retURL := ""
+	if config.ServerConfig.BaseURL == "" {
+		requestURL := r.Host
+		retURL = fmt.Sprintf("%s%s/", "http://", requestURL)
+	} else {
+		retURL = fmt.Sprintf("%s/", config.ServerConfig.BaseURL)
+	}
+	//fmt.Println(retURL, "req url")
+	retBody := fmt.Sprintf("%s%s", retURL, hashString)
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(201)
 	w.Write([]byte(retBody))
@@ -25,9 +33,6 @@ func ProcessPost(w http.ResponseWriter, r *http.Request) {
 
 func ProcessGet(w http.ResponseWriter, r *http.Request) {
 	body := chi.URLParam(r, "shortURL")
-	//fmt.Println(body, " body fron inner")
-	//shortURL := strings.TrimPrefix(r.URL.Host, "/")
-	//fmt.Println(r.URL., " url from ")
 	w.Header().Set("Content-Type", "text/plain")
 	redirectURL := storage.Find(body)
 	http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
