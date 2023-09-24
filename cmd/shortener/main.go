@@ -1,27 +1,31 @@
 package main
 
 import (
-	"net/http"
-
-	chi "github.com/go-chi/chi/v5"
-
 	"github.com/Megis82/shortener/internal/config"
-	"github.com/Megis82/shortener/internal/handlers"
+	"github.com/Megis82/shortener/internal/server"
 	"github.com/Megis82/shortener/internal/storage"
 )
 
 func main() {
 
-	storage.Init()
-
-	router := chi.NewRouter()
-	config.ParseConfig()
-	handlers.InitRouters(router)
-
-	//err := http.ListenAndServe(fmt.Sprintf("%s:%s", config.ServerConfig.NetAddress.String(), fmt.Sprint(config.ServerConfig.Port)), router)
-	err := http.ListenAndServe(config.ServerConfig.NetAddress, router)
+	config, err := config.Init()
 
 	if err != nil {
 		panic(err)
 	}
+
+	storage, err := storage.NewMemoryStorage()
+
+	if err != nil {
+		panic(err)
+	}
+
+	server, err := server.NewServer(config, storage)
+
+	if err != nil {
+		panic(err)
+	}
+
+	server.Run()
+
 }

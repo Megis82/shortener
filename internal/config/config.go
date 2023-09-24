@@ -8,23 +8,24 @@ import (
 )
 
 type Config struct {
-	//NetAddress net.IP
 	NetAddress string
-	//Port       int
-	BaseURL string
+	BaseURL    string
+	//DatabaseType string
 }
 
 type configEnv struct {
 	NetAddress string `env:"SERVER_ADDRESS"`
 	BaseURL    string `env:"BASE_URL"`
+	//DatabaseType string `env:"DBTYPE"`
 }
 
-var ServerConfig Config
+func Init() (Config, error) {
 
-func ParseConfig() {
+	var ServerConfig Config
 
 	flag.StringVar(&ServerConfig.NetAddress, "a", ":8080", "network address")
 	flag.StringVar(&ServerConfig.BaseURL, "b", "", "base URL")
+	//flag.StringVar(&ServerConfig.DatabaseType, "dbtype", "memory", "Database type")
 	flag.Parse()
 
 	var cfg configEnv
@@ -42,5 +43,9 @@ func ParseConfig() {
 		ServerConfig.BaseURL = cfg.BaseURL
 	}
 
-	//fmt.Println(ServerConfig.NetAddress, ServerConfig.BaseURL)
+	// if cfg.DatabaseType != "" {
+	// 	ServerConfig.DatabaseType = cfg.DatabaseType
+	// }
+
+	return ServerConfig, nil
 }
