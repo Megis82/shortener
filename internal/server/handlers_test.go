@@ -6,8 +6,15 @@ import (
 )
 
 func TestMainPage(t *testing.T) {
-	// storage.Init()
-	// config.ParseConfig()
+	// server := &Server{config: conf, storage: stor, routers: chi.NewRouter(), logger: log}
+	// server.routes()
+
+	// config, _ := config.Init()
+	// storage, _ := storage.NewMemoryStorage()
+	// logger, _ := logger.NewLogger()
+	// s, _ := server.NewServer(config, storage, logger)
+	// // storage.Init()
+	// // config.ParseConfig()
 	// type want struct {
 	// 	code        int
 	// 	contentType string
@@ -50,7 +57,7 @@ func TestMainPage(t *testing.T) {
 	// 		requestPost := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(test.body))
 
 	// 		wPost := httptest.NewRecorder()
-	// 		handlers.ProcessPost(wPost, requestPost)
+	// 		s.ProcessPost(wPost, requestPost)
 
 	// 		resPost := wPost.Result()
 
@@ -61,7 +68,6 @@ func TestMainPage(t *testing.T) {
 	// 		require.NoError(t, err)
 	// 		assert.Equal(t, resPost.Header.Get("Content-Type"), test.wantPost.contentType)
 
-	// 		//requestGet := httptest.NewRequest(http.MethodGet, string(responseBody), nil)
 	// 		shortURL := string(responseBody)
 
 	// 		u, err := url.Parse(shortURL)
@@ -81,7 +87,7 @@ func TestMainPage(t *testing.T) {
 
 	// 		requestGet = requestGet.WithContext(context.WithValue(requestGet.Context(), chi.RouteCtxKey, rctx))
 
-	// 		handlers.ProcessGet(wGet, requestGet)
+	// 		s.ProcessGet(wGet, requestGet)
 
 	// 		resGet := wGet.Result()
 
