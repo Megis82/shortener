@@ -26,6 +26,7 @@ func (s *Server) routes() {
 	s.routers.Use(s.WithLogging)
 	s.routers.Get("/{shortURL}", s.ProcessGet)
 	s.routers.Post("/", s.ProcessPost)
+	s.routers.Post("/api/shorten", s.ProcessPostApi)
 }
 
 func (s *Server) Run() {
