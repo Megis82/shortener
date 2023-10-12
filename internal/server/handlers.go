@@ -59,8 +59,9 @@ func (s *Server) GetLinkAdd(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) PostAPILinkAdd(w http.ResponseWriter, r *http.Request) {
+
 	var req struct {
-		Url string
+		URL string `json:"url"`
 	}
 
 	jsonReq, _ := io.ReadAll(r.Body)
@@ -72,8 +73,8 @@ func (s *Server) PostAPILinkAdd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hashString := code.CodeString(req.Url)
-	s.storage.Add(hashString, req.Url)
+	hashString := code.CodeString(req.URL)
+	s.storage.Add(hashString, req.URL)
 
 	retURL := ""
 	if s.config.BaseURL == "" {
