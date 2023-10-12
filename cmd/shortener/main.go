@@ -11,23 +11,24 @@ func main() {
 
 	config, err := config.Init()
 	if err != nil {
-		panic(err)
+		return
 	}
 
-	storage, err := storage.NewMemoryStorage()
+	storage, err := storage.NewMemoryStorage(config)
 	if err != nil {
-		panic(err)
+		return
 	}
+	defer storage.Close()
 
 	logger, err := logger.NewLogger()
 	if err != nil {
-		panic(err)
+		return
 	}
 	defer logger.Sync()
 
 	server, err := server.NewServer(config, storage, logger)
 	if err != nil {
-		panic(err)
+		return
 	}
 
 	server.Run()

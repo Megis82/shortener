@@ -8,14 +8,16 @@ import (
 )
 
 type Config struct {
-	NetAddress string
-	BaseURL    string
+	NetAddress  string
+	BaseURL     string
+	FileStorage string
 	//DatabaseType string
 }
 
 type configEnv struct {
-	NetAddress string `env:"SERVER_ADDRESS"`
-	BaseURL    string `env:"BASE_URL"`
+	NetAddress  string `env:"SERVER_ADDRESS"`
+	BaseURL     string `env:"BASE_URL"`
+	FileStorage string `env:"FILE_STORAGE_PATH"`
 	//DatabaseType string `env:"DBTYPE"`
 }
 
@@ -25,6 +27,7 @@ func Init() (Config, error) {
 
 	flag.StringVar(&ServerConfig.NetAddress, "a", ":8080", "network address")
 	flag.StringVar(&ServerConfig.BaseURL, "b", "", "base URL")
+	flag.StringVar(&ServerConfig.FileStorage, "f", "/tmp/short-url-db.json", "file storage")
 	//flag.StringVar(&ServerConfig.DatabaseType, "dbtype", "memory", "Database type")
 	flag.Parse()
 
@@ -41,6 +44,10 @@ func Init() (Config, error) {
 
 	if cfg.BaseURL != "" {
 		ServerConfig.BaseURL = cfg.BaseURL
+	}
+
+	if cfg.FileStorage != "" {
+		ServerConfig.FileStorage = cfg.BaseURL
 	}
 
 	// if cfg.DatabaseType != "" {

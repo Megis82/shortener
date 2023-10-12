@@ -6,40 +6,11 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/Megis82/shortener/internal/code"
-	"go.uber.org/zap"
 
 	chi "github.com/go-chi/chi/v5"
 )
-
-type (
-	// берём структуру для хранения сведений об ответе
-	responseData struct {
-		status int
-		size   int
-	}
-
-	// добавляем реализацию http.ResponseWriter
-	loggingResponseWriter struct {
-		http.ResponseWriter // встраиваем оригинальный http.ResponseWriter
-		responseData        *responseData
-	}
-)
-
-func (r *loggingResponseWriter) Write(b []byte) (int, error) {
-	// записываем ответ, используя оригинальный http.ResponseWriter
-	size, err := r.ResponseWriter.Write(b)
-	r.responseData.size += size // захватываем размер
-	return size, err
-}
-
-func (r *loggingResponseWriter) WriteHeader(statusCode int) {
-	// записываем код статуса, используя оригинальный http.ResponseWriter
-	r.ResponseWriter.WriteHeader(statusCode)
-	r.responseData.status = statusCode // захватываем код статуса
-}
 
 func (s *Server) ProcessPost(w http.ResponseWriter, r *http.Request) {
 	body, _ := io.ReadAll(r.Body)
@@ -129,31 +100,4 @@ func (s *Server) ProcessPostApi(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(201)
 	w.Write([]byte(jsonAns))
-}
-
-func (s *Server) WithLogging(h http.Handler) http.Handler {
-	logFn := func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
-		uri := r.RequestURI
-		method := r.Method
-		responseData := &responseData{
-			status: 0,
-			size:   0,
-		}
-		lw := loggingResponseWriter{
-			ResponseWriter: w, // встраиваем оригинальный http.ResponseWriter
-			responseData:   responseData,
-		}
-
-		h.ServeHTTP(&lw, r)
-		duration := time.Since(start)
-		s.logger.Info("Request started",
-			zap.String("method", method),
-			zap.String("path", uri),
-			zap.String("status", fmt.Sprint(responseData.status)),
-			zap.String("size", fmt.Sprint(responseData.size)),
-			zap.String("duration", duration.String()),
-		)
-	}
-	return http.HandlerFunc(logFn)
 }
