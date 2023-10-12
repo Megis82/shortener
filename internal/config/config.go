@@ -3,6 +3,8 @@ package config
 import (
 	"flag"
 	"log"
+	"os"
+	"path/filepath"
 
 	env "github.com/caarlos0/env/v6"
 )
@@ -24,10 +26,10 @@ type configEnv struct {
 func Init() (Config, error) {
 
 	var ServerConfig Config
-
+	tmpFile := filepath.Join(os.TempDir(), "short-url-db.json")
 	flag.StringVar(&ServerConfig.NetAddress, "a", ":8080", "network address")
 	flag.StringVar(&ServerConfig.BaseURL, "b", "", "base URL")
-	flag.StringVar(&ServerConfig.FileStorage, "f", "/tmp/short-url-db.json", "file storage")
+	flag.StringVar(&ServerConfig.FileStorage, "f", tmpFile, "file storage")
 	//flag.StringVar(&ServerConfig.DatabaseType, "dbtype", "memory", "Database type")
 	flag.Parse()
 
@@ -47,7 +49,7 @@ func Init() (Config, error) {
 	}
 
 	if cfg.FileStorage != "" {
-		ServerConfig.FileStorage = cfg.BaseURL
+		ServerConfig.FileStorage = cfg.FileStorage
 	}
 
 	// if cfg.DatabaseType != "" {

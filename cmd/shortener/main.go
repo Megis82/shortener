@@ -9,6 +9,13 @@ import (
 
 func main() {
 
+	logger, err := logger.NewLogger()
+	if err != nil {
+		return
+	}
+
+	defer logger.Sync()
+
 	config, err := config.Init()
 	if err != nil {
 		return
@@ -19,12 +26,6 @@ func main() {
 		return
 	}
 	defer storage.Close()
-
-	logger, err := logger.NewLogger()
-	if err != nil {
-		return
-	}
-	defer logger.Sync()
 
 	server, err := server.NewServer(config, storage, logger)
 	if err != nil {

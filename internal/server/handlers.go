@@ -16,6 +16,7 @@ func (s *Server) ProcessPost(w http.ResponseWriter, r *http.Request) {
 	body, _ := io.ReadAll(r.Body)
 	hashString := code.CodeString(string(body))
 	s.storage.Add(hashString, string(body))
+	s.storage.Close()
 
 	retURL := ""
 	if s.config.BaseURL == "" {
