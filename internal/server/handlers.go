@@ -58,7 +58,7 @@ func (s *Server) GetLinkAdd(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) PostApiLinkAdd(w http.ResponseWriter, r *http.Request) {
+func (s *Server) PostAPILinkAdd(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Url string
 	}

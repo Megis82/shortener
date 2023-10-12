@@ -31,7 +31,7 @@ func (s *Server) routes() {
 	s.routers.Use(GzipHandle)
 	s.routers.Get("/{shortURL}", s.GetLinkAdd)
 	s.routers.Post("/", s.PostLinkAdd)
-	s.routers.Post("/api/shorten", s.PostApiLinkAdd)
+	s.routers.Post("/api/shorten", s.PostAPILinkAdd)
 }
 
 func (s *Server) Run() {
