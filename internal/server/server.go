@@ -29,9 +29,9 @@ func NewServer(conf config.Config, stor storage.DataStorage, log *zap.Logger) (*
 func (s *Server) routes() {
 	s.routers.Use(s.WithLogging)
 	s.routers.Use(GzipHandle)
-	s.routers.Get("/{shortURL}", s.ProcessGet)
-	s.routers.Post("/", s.ProcessPost)
-	s.routers.Post("/api/shorten", s.ProcessPostApi)
+	s.routers.Get("/{shortURL}", s.GetLinkAdd)
+	s.routers.Post("/", s.PostLinkAdd)
+	s.routers.Post("/api/shorten", s.PostApiLinkAdd)
 }
 
 func (s *Server) Run() {

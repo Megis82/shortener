@@ -12,7 +12,7 @@ import (
 	chi "github.com/go-chi/chi/v5"
 )
 
-func (s *Server) ProcessPost(w http.ResponseWriter, r *http.Request) {
+func (s *Server) PostLinkAdd(w http.ResponseWriter, r *http.Request) {
 	body, _ := io.ReadAll(r.Body)
 	hashString := code.CodeString(string(body))
 	s.storage.Add(hashString, string(body))
@@ -32,7 +32,7 @@ func (s *Server) ProcessPost(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(retBody))
 }
 
-func (s *Server) ProcessGet(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GetLinkAdd(w http.ResponseWriter, r *http.Request) {
 	body := chi.URLParam(r, "shortURL")
 	if redirectURL, _, err := s.storage.Find(body); err != nil {
 
@@ -58,7 +58,7 @@ func (s *Server) ProcessGet(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) ProcessPostApi(w http.ResponseWriter, r *http.Request) {
+func (s *Server) PostApiLinkAdd(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Url string
 	}
