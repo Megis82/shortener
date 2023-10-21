@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-
-	"github.com/Megis82/shortener/internal/config"
 )
 
 type MemoryStorage struct {
@@ -34,11 +32,15 @@ func (m *MemoryStorage) Find(key string) (string, bool, error) {
 	return value, ok, nil
 }
 
-func NewMemoryStorage(config config.Config) (*MemoryStorage, error) {
+func (m *MemoryStorage) Ping() error {
+	return nil
+}
 
-	mem := &MemoryStorage{data: make(map[string]string), fileStorage: config.FileStorage}
+func NewMemoryStorage(fileStorage string) (*MemoryStorage, error) {
 
-	file, err := os.OpenFile(config.FileStorage, os.O_RDONLY, 0644)
+	mem := &MemoryStorage{data: make(map[string]string), fileStorage: fileStorage}
+
+	file, err := os.OpenFile(fileStorage, os.O_RDONLY, 0644)
 
 	if os.IsNotExist(err) {
 		return mem, nil
@@ -77,16 +79,6 @@ func NewMemoryStorage(config config.Config) (*MemoryStorage, error) {
 func (m *MemoryStorage) Close() error {
 
 	_ = os.Remove(m.fileStorage)
-
-	// if err != nil {
-	// 	return err
-	// }
-
-	//file, _ := os.OpenFile(m.fileStorage, os.O_CREATE, 0644)
-
-	// if err != nil {
-	// 	return err
-	// }
 
 	data := make([]MemoryStorageSave, 0)
 

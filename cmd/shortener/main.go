@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+
 	"github.com/Megis82/shortener/internal/config"
 	"github.com/Megis82/shortener/internal/logger"
 	"github.com/Megis82/shortener/internal/server"
@@ -8,6 +10,7 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
 
 	logger, err := logger.NewLogger()
 	if err != nil {
@@ -21,7 +24,12 @@ func main() {
 		return
 	}
 
-	storage, err := storage.NewMemoryStorage(config)
+	// storage, err := storage.NewMemoryStorage(config.FileStorage)
+	// if err != nil {
+	// 	return
+	// }
+	// defer storage.Close()
+	storage, err := storage.NewSQLStorage(config.DatabaseDSN)
 	if err != nil {
 		return
 	}
@@ -32,6 +40,6 @@ func main() {
 		return
 	}
 
-	server.Run()
+	server.Run(ctx)
 
 }

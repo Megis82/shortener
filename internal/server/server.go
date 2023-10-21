@@ -29,12 +29,13 @@ func NewServer(conf config.Config, stor storage.DataStorage, log *zap.Logger) (*
 func (s *Server) routes() {
 	s.routers.Use(s.WithLogging)
 	s.routers.Use(GzipHandle)
+	s.routers.Get("/ping", s.handleGetHealth)
 	s.routers.Get("/{shortURL}", s.GetLinkAdd)
 	s.routers.Post("/", s.PostLinkAdd)
 	s.routers.Post("/api/shorten", s.PostAPILinkAdd)
 }
 
-func (s *Server) Run() {
+func (s *Server) Run(ctx context.Context) {
 	//err1 := http.ListenAndServe(s.config.NetAddress, s.routers)
 
 	var srv http.Server
@@ -42,13 +43,14 @@ func (s *Server) Run() {
 	srv.Handler = s.routers
 
 	idleConnsClosed := make(chan struct{})
+
 	go func() {
 		sigint := make(chan os.Signal, 1)
 		signal.Notify(sigint, os.Interrupt)
 		<-sigint
 
 		// We received an interrupt signal, shut down.
-		if err := srv.Shutdown(context.Background()); err != nil {
+		if err := srv.Shutdown(ctx); err != nil {
 			// Error from closing listeners, or context timeout:
 			log.Printf("HTTP server Shutdown: %v", err)
 		}

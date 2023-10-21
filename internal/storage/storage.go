@@ -5,4 +5,5 @@ type DataStorage interface {
 	Add(key string, value string) error
 	Find(key string) (string, bool, error)
 	Close() error
+	Ping() error
 }
