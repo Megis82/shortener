@@ -29,10 +29,24 @@ func main() {
 	// 	return
 	// }
 	// defer storage.Close()
-	storage, err := storage.NewSQLStorage(config.DatabaseDSN)
+
+	// storage, err := storage.NewSQLStorage(config.DatabaseDSN)
+	// if err != nil {
+	// 	return
+	// }
+	// defer storage.Close()
+
+	storage, err := storage.NewStorage(config)
+
 	if err != nil {
 		return
 	}
+	err = storage.Init()
+
+	if err != nil {
+		return
+	}
+
 	defer storage.Close()
 
 	server, err := server.NewServer(config, storage, logger)

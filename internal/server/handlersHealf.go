@@ -1,11 +1,17 @@
 package server
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
 
 func (s Server) handleGetHealth(w http.ResponseWriter, r *http.Request) {
-	if err := s.storage.Ping(); err != nil {
-		w.WriteHeader(http.StatusOK)
+	var err error
+	if err = s.storage.Ping(r.Context()); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
 		return
 	}
-	w.WriteHeader(http.StatusInternalServerError)
+	fmt.Println(err)
+	w.WriteHeader(http.StatusOK)
 }

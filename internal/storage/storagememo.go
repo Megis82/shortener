@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -32,13 +33,17 @@ func (m *MemoryStorage) Find(key string) (string, bool, error) {
 	return value, ok, nil
 }
 
-func (m *MemoryStorage) Ping() error {
+func (m *MemoryStorage) Ping(ctx context.Context) error {
 	return nil
 }
 
 func NewMemoryStorage(fileStorage string) (*MemoryStorage, error) {
 
 	mem := &MemoryStorage{data: make(map[string]string), fileStorage: fileStorage}
+
+	if fileStorage == "" {
+		return mem, nil
+	}
 
 	file, err := os.OpenFile(fileStorage, os.O_RDONLY, 0644)
 
@@ -77,6 +82,9 @@ func NewMemoryStorage(fileStorage string) (*MemoryStorage, error) {
 }
 
 func (m *MemoryStorage) Close() error {
+	if m.fileStorage == "" {
+		return nil
+	}
 
 	_ = os.Remove(m.fileStorage)
 

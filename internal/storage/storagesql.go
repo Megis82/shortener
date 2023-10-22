@@ -3,9 +3,10 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
-	_ "github.com/jackc/pgx"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 const driverName = "pgx"
@@ -16,10 +17,22 @@ type SQLStorage struct {
 	pool        *sql.DB
 }
 
+func (m *SQLStorage) createIfNedded() error {
+	_, err := m.pool.Exec("create table if not exists short_db (short_url text PRIMARY KEY, full_url text)")
+	return err
+}
+
 func (m *SQLStorage) Init() error {
 
 	var err error
 	m.pool, err = sql.Open(driverName, m.DatabaseDSN)
+	fmt.Println(err)
+
+	if err != nil {
+		return err
+	}
+
+	err = m.createIfNedded()
 
 	if err != nil {
 		return err
@@ -28,15 +41,16 @@ func (m *SQLStorage) Init() error {
 	return nil
 }
 
-func (m *SQLStorage) Ping() error {
+func (m *SQLStorage) Ping(ctx context.Context) error {
 
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 
 	if err := m.pool.PingContext(ctx); err != nil {
 		// log.Fatalf("unable to connect to database: %v", err)
 		return err
 	}
+
 	return nil
 }
 
