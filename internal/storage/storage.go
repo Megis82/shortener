@@ -9,8 +9,9 @@ import (
 
 type DataStorage interface {
 	Init() error
-	Add(key string, value string) error
-	Find(key string) (string, bool, error)
+	Add(ctx context.Context, key string, value string) error
+	AddBatch(ctx context.Context, values map[string]string) error
+	Find(ctx context.Context, key string) (string, bool, error)
 	Close() error
 	Ping(ctx context.Context) error
 }

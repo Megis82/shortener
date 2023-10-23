@@ -15,7 +15,7 @@ import (
 func (s *Server) PostLinkAdd(w http.ResponseWriter, r *http.Request) {
 	body, _ := io.ReadAll(r.Body)
 	hashString := code.CodeString(string(body))
-	s.storage.Add(hashString, string(body))
+	s.storage.Add(r.Context(), hashString, string(body))
 	//s.storage.Close()
 
 	retURL := ""
@@ -34,7 +34,7 @@ func (s *Server) PostLinkAdd(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) GetLinkAdd(w http.ResponseWriter, r *http.Request) {
 	body := chi.URLParam(r, "shortURL")
-	if redirectURL, _, err := s.storage.Find(body); err != nil {
+	if redirectURL, _, err := s.storage.Find(r.Context(), body); err != nil {
 
 		htmlFile, err := os.Open("static/error404.html")
 		if err != nil {
@@ -58,6 +58,62 @@ func (s *Server) GetLinkAdd(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s *Server) PostAPILinkAddBatch(w http.ResponseWriter, r *http.Request) {
+
+	type req struct {
+		CorrID  string `json:"correlation_id"`
+		OrigURL string `json:"original_url"`
+	}
+
+	type answ struct {
+		CorrID   string `json:"correlation_id"`
+		ShortURL string `json:"short_url"`
+	}
+
+	reqBody := make([]req, 0)
+	answBody := make([]answ, 0)
+	batchArray := make(map[string]string, 0)
+	jsonReq, _ := io.ReadAll(r.Body)
+
+	err := json.Unmarshal(jsonReq, &reqBody)
+
+	if err != nil {
+		fmt.Println("Ошибка при парсинге JSON:", err)
+		return
+	}
+
+	for _, reqStr := range reqBody {
+		hashString := code.CodeString(reqStr.OrigURL)
+
+		batchArray[hashString] = reqStr.OrigURL
+
+		retURL := ""
+		if s.config.BaseURL == "" {
+			requestURL := r.Host
+			retURL = fmt.Sprintf("%s%s/", "http://", requestURL)
+		} else {
+			retURL = fmt.Sprintf("%s/", s.config.BaseURL)
+		}
+
+		retBody := fmt.Sprintf("%s%s", retURL, hashString)
+
+		answBody = append(answBody, answ{CorrID: reqStr.CorrID, ShortURL: retBody})
+	}
+
+	s.storage.AddBatch(r.Context(), batchArray)
+
+	jsonAns, err := json.Marshal(answBody)
+
+	if err != nil {
+		fmt.Println("Ошибка при преобразовании структуры в JSON:", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	w.Write([]byte(jsonAns))
+}
+
 func (s *Server) PostAPILinkAdd(w http.ResponseWriter, r *http.Request) {
 
 	var req struct {
@@ -74,7 +130,7 @@ func (s *Server) PostAPILinkAdd(w http.ResponseWriter, r *http.Request) {
 	}
 
 	hashString := code.CodeString(req.URL)
-	s.storage.Add(hashString, req.URL)
+	s.storage.Add(r.Context(), hashString, req.URL)
 
 	retURL := ""
 	if s.config.BaseURL == "" {

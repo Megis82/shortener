@@ -33,6 +33,8 @@ func (s *Server) routes() {
 	s.routers.Get("/{shortURL}", s.GetLinkAdd)
 	s.routers.Post("/", s.PostLinkAdd)
 	s.routers.Post("/api/shorten", s.PostAPILinkAdd)
+	s.routers.Post("/api/shorten/batch", s.PostAPILinkAddBatch)
+
 }
 
 func (s *Server) Run(ctx context.Context) {

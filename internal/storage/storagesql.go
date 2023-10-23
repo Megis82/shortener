@@ -18,7 +18,7 @@ type SQLStorage struct {
 }
 
 func (m *SQLStorage) createIfNedded() error {
-	_, err := m.pool.Exec("create table if not exists short_db (short_url text PRIMARY KEY, full_url text)")
+	_, err := m.pool.Exec("create table if not exists shortdb (shorturl text PRIMARY KEY, fullurl text)")
 	return err
 }
 
@@ -54,14 +54,101 @@ func (m *SQLStorage) Ping(ctx context.Context) error {
 	return nil
 }
 
-func (m *SQLStorage) Add(key string, value string) error {
-	//m.data[key] = value
+func (m *SQLStorage) Add(ctx context.Context, key string, value string) error {
+
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+
+	_, err := m.pool.ExecContext(ctx,
+		`INSERT INTO shortdb 
+			(shorturl, fullurl)
+		VALUES
+			($1, $2)
+		ON CONFLICT (shorturl)
+		DO NOTHING`,
+		key, value)
+
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
 	return nil
 }
+func (m *SQLStorage) AddBatch(ctx context.Context, values map[string]string) error {
 
-func (m *SQLStorage) Find(key string) (string, bool, error) {
-	//value, ok := m.data[key]
-	return "", true, nil
+	// ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	// defer cancel()
+
+	// _, err := m.pool.ExecContext(ctx,
+	// 	`INSERT INTO shortdb
+	// 		(shorturl, fullurl)
+	// 	VALUES
+	// 		($1, $2)
+	// 	ON CONFLICT (shorturl)
+	// 	DO NOTHING`,
+	// 	key, value)
+
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return err
+	// }
+
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+
+	tx, err := m.pool.Begin()
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback()
+
+	stmt, err := tx.PrepareContext(ctx,
+		`INSERT INTO shortdb 
+			(shorturl, fullurl)
+		VALUES
+			($1, $2)
+		ON CONFLICT (shorturl)
+		DO NOTHING`)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	for key, val := range values {
+		_, err := stmt.ExecContext(ctx, key, val)
+		if err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
+
+}
+
+func (m *SQLStorage) Find(ctx context.Context, key string) (string, bool, error) {
+
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+
+	var full_url string
+	recFound := true
+
+	err := m.pool.QueryRowContext(ctx,
+		"SELECT shdb.fullurl FROM shortdb as shdb WHERE shdb.shorturl = $1 ", key).Scan(&full_url)
+
+	switch {
+	case err == sql.ErrNoRows:
+		recFound = false
+		fmt.Printf("no user with id %q\n", key)
+	case err != nil:
+		recFound = false
+		fmt.Printf("query error: %v\n", err)
+	default:
+		fmt.Printf("for shot url %q, full url is %s\n", key, full_url)
+	}
+
+	return full_url, recFound, err
 }
 
 func NewSQLStorage(DatabaseDSN string) (*SQLStorage, error) {
@@ -69,38 +156,6 @@ func NewSQLStorage(DatabaseDSN string) (*SQLStorage, error) {
 }
 
 func (m *SQLStorage) Close() error {
-
-	// _ = os.Remove(m.fileStorage)
-
-	// // if err != nil {
-	// // 	return err
-	// // }
-
-	// //file, _ := os.OpenFile(m.fileStorage, os.O_CREATE, 0644)
-
-	// // if err != nil {
-	// // 	return err
-	// // }
-
-	// data := make([]MemoryStorageSave, 0)
-
-	// idx := 1
-	// for key, val := range m.data {
-	// 	data = append(data, MemoryStorageSave{
-	// 		UUID:        fmt.Sprint(idx),
-	// 		ShortURL:    key,
-	// 		OriginalURL: val,
-	// 	})
-	// 	idx++
-	// }
-
-	// dataJSON, err := json.Marshal(data)
-
-	// if err != nil {
-	// 	return err
-	// }
-
-	// os.WriteFile(m.fileStorage, dataJSON, 0644)
 
 	return nil
 }

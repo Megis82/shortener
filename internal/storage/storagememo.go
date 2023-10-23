@@ -23,12 +23,19 @@ func (m *MemoryStorage) Init() error {
 	return nil
 }
 
-func (m *MemoryStorage) Add(key string, value string) error {
+func (m *MemoryStorage) Add(ctx context.Context, key string, value string) error {
 	m.data[key] = value
 	return nil
 }
 
-func (m *MemoryStorage) Find(key string) (string, bool, error) {
+func (m *MemoryStorage) AddBatch(ctx context.Context, values map[string]string) error {
+	for key, val := range values {
+		m.data[key] = val
+	}
+	return nil
+}
+
+func (m *MemoryStorage) Find(ctx context.Context, key string) (string, bool, error) {
 	value, ok := m.data[key]
 	return value, ok, nil
 }
@@ -75,7 +82,7 @@ func NewMemoryStorage(fileStorage string) (*MemoryStorage, error) {
 	}
 
 	for _, str := range data {
-		mem.Add(str.ShortURL, str.OriginalURL)
+		mem.Add(context.Background(), str.ShortURL, str.OriginalURL)
 	}
 
 	return mem, nil
