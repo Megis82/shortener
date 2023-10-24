@@ -143,6 +143,11 @@ func (s *Server) PostAPILinkAdd(w http.ResponseWriter, r *http.Request) {
 		hashString, err = s.storage.FindShortByFullPath(r.Context(), req.URL)
 	}
 
+	if err != nil {
+		fmt.Println("Ошибка работы с хранилищем", err)
+		return
+	}
+
 	retURL := ""
 	if s.config.BaseURL == "" {
 		requestURL := r.Host

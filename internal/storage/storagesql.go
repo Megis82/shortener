@@ -123,11 +123,11 @@ func (m *SQLStorage) Find(ctx context.Context, key string) (string, bool, error)
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 
-	var full_url string
+	var fullURL string
 	recFound := true
 
 	err := m.pool.QueryRowContext(ctx,
-		"SELECT shdb.fullurl FROM shortdb as shdb WHERE shdb.shorturl = $1 ", key).Scan(&full_url)
+		"SELECT shdb.fullurl FROM shortdb as shdb WHERE shdb.shorturl = $1 ", key).Scan(&fullURL)
 
 	switch {
 	case err == sql.ErrNoRows:
@@ -137,10 +137,10 @@ func (m *SQLStorage) Find(ctx context.Context, key string) (string, bool, error)
 		recFound = false
 		fmt.Printf("query error: %v\n", err)
 	default:
-		fmt.Printf("for shot url %q, full url is %s\n", key, full_url)
+		fmt.Printf("for shot url %q, full url is %s\n", key, fullURL)
 	}
 
-	return full_url, recFound, err
+	return fullURL, recFound, err
 }
 
 func (m *SQLStorage) FindShortByFullPath(ctx context.Context, value string) (string, error) {
@@ -148,10 +148,10 @@ func (m *SQLStorage) FindShortByFullPath(ctx context.Context, value string) (str
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 
-	var short_url string
+	var shortURL string
 
 	err := m.pool.QueryRowContext(ctx,
-		"SELECT shdb.shorturl FROM shortdb as shdb WHERE shdb.fullurl = $1 ", value).Scan(&short_url)
+		"SELECT shdb.shorturl FROM shortdb as shdb WHERE shdb.fullurl = $1 ", value).Scan(&shortURL)
 
 	switch {
 	case err == sql.ErrNoRows:
@@ -159,10 +159,10 @@ func (m *SQLStorage) FindShortByFullPath(ctx context.Context, value string) (str
 	case err != nil:
 		fmt.Printf("query error: %v\n", err)
 	default:
-		fmt.Printf("for shot url %q, full url is %s\n", value, short_url)
+		fmt.Printf("for shot url %q, full url is %s\n", value, shortURL)
 	}
 
-	return short_url, err
+	return shortURL, err
 }
 
 func NewSQLStorage(DatabaseDSN string) (*SQLStorage, error) {
