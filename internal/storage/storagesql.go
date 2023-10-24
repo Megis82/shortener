@@ -72,9 +72,12 @@ func (m *SQLStorage) Add(ctx context.Context, key string, value string) error {
 	// DO NOTHING`,
 
 	if err != nil {
+		fmt.Println("error with dublicate key ", err)
+
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) {
 			err = ErrConflict
+			fmt.Println("error with dublicate key set to ", err)
 		}
 	}
 	// if err != nil {
@@ -100,9 +103,7 @@ func (m *SQLStorage) AddBatch(ctx context.Context, values map[string]string) err
 		`INSERT INTO shortdb 
 			(shorturl, fullurl)
 		VALUES
-			($1, $2)
-		ON CONFLICT (shorturl)
-		DO NOTHING`)
+			($1, $2)`)
 	if err != nil {
 		return err
 	}
@@ -111,7 +112,14 @@ func (m *SQLStorage) AddBatch(ctx context.Context, values map[string]string) err
 	for key, val := range values {
 		_, err := stmt.ExecContext(ctx, key, val)
 		if err != nil {
-			return err
+			fmt.Println("error multi with dublicate key ", err)
+
+			var pgErr *pgconn.PgError
+			if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) {
+				fmt.Println("error multi with dublicate key set to ", err)
+				err = ErrConflict
+				return err
+			}
 		}
 	}
 	return tx.Commit()
