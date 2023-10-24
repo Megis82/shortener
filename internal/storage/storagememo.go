@@ -40,6 +40,15 @@ func (m *MemoryStorage) Find(ctx context.Context, key string) (string, bool, err
 	return value, ok, nil
 }
 
+func (m *MemoryStorage) FindShortByFullPath(ctx context.Context, value string) (string, error) {
+	for key, val := range m.data {
+		if val == value {
+			return key, nil
+		}
+	}
+	return "", nil
+}
+
 func (m *MemoryStorage) Ping(ctx context.Context) error {
 	return nil
 }

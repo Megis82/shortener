@@ -2,12 +2,14 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 
 	"github.com/Megis82/shortener/internal/code"
+	"github.com/Megis82/shortener/internal/storage"
 
 	chi "github.com/go-chi/chi/v5"
 )
@@ -130,7 +132,16 @@ func (s *Server) PostAPILinkAdd(w http.ResponseWriter, r *http.Request) {
 	}
 
 	hashString := code.CodeString(req.URL)
-	s.storage.Add(r.Context(), hashString, req.URL)
+
+	// var shortPath string
+
+	err = s.storage.Add(r.Context(), hashString, req.URL)
+
+	if errors.Is(err, storage.ErrConflict) {
+		// ошибка специфична для случая конфликта имён пользователей
+		w.WriteHeader(409)
+		hashString, err = s.storage.FindShortByFullPath(r.Context(), req.URL)
+	}
 
 	retURL := ""
 	if s.config.BaseURL == "" {

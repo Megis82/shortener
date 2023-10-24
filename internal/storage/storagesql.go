@@ -3,9 +3,12 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgerrcode"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -63,36 +66,25 @@ func (m *SQLStorage) Add(ctx context.Context, key string, value string) error {
 		`INSERT INTO shortdb 
 			(shorturl, fullurl)
 		VALUES
-			($1, $2)
-		ON CONFLICT (shorturl)
-		DO NOTHING`,
+			($1, $2)`,
 		key, value)
+	// ON CONFLICT (shorturl)
+	// DO NOTHING`,
 
 	if err != nil {
-		fmt.Println(err)
-		return err
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) {
+			err = ErrConflict
+		}
 	}
-
-	return nil
-}
-func (m *SQLStorage) AddBatch(ctx context.Context, values map[string]string) error {
-
-	// ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
-	// defer cancel()
-
-	// _, err := m.pool.ExecContext(ctx,
-	// 	`INSERT INTO shortdb
-	// 		(shorturl, fullurl)
-	// 	VALUES
-	// 		($1, $2)
-	// 	ON CONFLICT (shorturl)
-	// 	DO NOTHING`,
-	// 	key, value)
-
 	// if err != nil {
 	// 	fmt.Println(err)
 	// 	return err
 	// }
+
+	return err
+}
+func (m *SQLStorage) AddBatch(ctx context.Context, values map[string]string) error {
 
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
@@ -149,6 +141,28 @@ func (m *SQLStorage) Find(ctx context.Context, key string) (string, bool, error)
 	}
 
 	return full_url, recFound, err
+}
+
+func (m *SQLStorage) FindShortByFullPath(ctx context.Context, value string) (string, error) {
+
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+
+	var short_url string
+
+	err := m.pool.QueryRowContext(ctx,
+		"SELECT shdb.shorturl FROM shortdb as shdb WHERE shdb.fullurl = $1 ", value).Scan(&short_url)
+
+	switch {
+	case err == sql.ErrNoRows:
+		fmt.Printf("no user with id %q\n", value)
+	case err != nil:
+		fmt.Printf("query error: %v\n", err)
+	default:
+		fmt.Printf("for shot url %q, full url is %s\n", value, short_url)
+	}
+
+	return short_url, err
 }
 
 func NewSQLStorage(DatabaseDSN string) (*SQLStorage, error) {

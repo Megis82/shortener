@@ -2,16 +2,20 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/Megis82/shortener/internal/config"
 )
+
+var ErrConflict = errors.New("data conflict")
 
 type DataStorage interface {
 	Init() error
 	Add(ctx context.Context, key string, value string) error
 	AddBatch(ctx context.Context, values map[string]string) error
 	Find(ctx context.Context, key string) (string, bool, error)
+	FindShortByFullPath(ctx context.Context, value string) (string, error)
 	Close() error
 	Ping(ctx context.Context) error
 }
