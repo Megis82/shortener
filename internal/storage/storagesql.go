@@ -73,12 +73,18 @@ func (m *SQLStorage) Add(ctx context.Context, key string, value string) error {
 
 	if err != nil {
 		fmt.Println("error with dublicate key ", err)
-
+		// if err != nil {
+		// 	pgErr, ok := err.(*pgconn.PgError)
+		// 	if ok && pgErr.Code == pqerrcode.UniqueViolation {
+		// 		err = ErrConflict
+		// 		fmt.Println("error with dublicate key set to ", err)
+		// 	}
 		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) {
+		if errors.As(err, &pgErr) && (pgErr.Code == pgerrcode.UniqueViolation) {
 			err = ErrConflict
 			fmt.Println("error with dublicate key set to ", err)
 		}
+		// }
 	}
 	// if err != nil {
 	// 	fmt.Println(err)
