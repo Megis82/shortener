@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"net/http"
+	"runtime"
 	"time"
 
 	"go.uber.org/zap"
@@ -60,4 +61,18 @@ func (s *Server) WithLogging(h http.Handler) http.Handler {
 		)
 	}
 	return http.HandlerFunc(logFn)
+}
+
+func printCallStack() {
+	// Создаем буфер для хранения адресов вызовов функций
+	callers := make([]uintptr, 10)
+
+	// Получаем стек вызова функций
+	numCallers := runtime.Callers(0, callers)
+
+	// Преобразуем адреса в названия функций
+	frames := runtime.CallersFrames(callers[:numCallers])
+	for frame, more := frames.Next(); more; frame, more = frames.Next() {
+		fmt.Printf("- %s\n", frame.Function)
+	}
 }

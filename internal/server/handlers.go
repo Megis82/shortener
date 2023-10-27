@@ -15,10 +15,33 @@ import (
 )
 
 func (s *Server) PostLinkAdd(w http.ResponseWriter, r *http.Request) {
+	CodeStatus := 201
+
 	body, _ := io.ReadAll(r.Body)
-	hashString := code.CodeString(string(body))
-	s.storage.Add(r.Context(), hashString, string(body))
-	//s.storage.Close()
+	reqURL := string(body)
+
+	// fmt.Println("URL start")
+	// fmt.Println([]byte(reqURL))
+	// fmt.Println("URL end")
+
+	hashString := code.CodeString(reqURL)
+
+	err := s.storage.Add(r.Context(), hashString, reqURL)
+
+	if err != nil {
+
+		if errors.Is(err, storage.ErrConflict) {
+			// ошибка специфична для случая конфликта имён пользователей
+			// w.WriteHeader(409)
+			CodeStatus = 409
+
+			hashString, _ = s.storage.FindShortByFullPath(r.Context(), reqURL)
+		} else {
+
+			//fmt.Println("Ошибка работы с хранилищем (((((", err)
+			return
+		}
+	}
 
 	retURL := ""
 	if s.config.BaseURL == "" {
@@ -27,10 +50,10 @@ func (s *Server) PostLinkAdd(w http.ResponseWriter, r *http.Request) {
 	} else {
 		retURL = fmt.Sprintf("%s/", s.config.BaseURL)
 	}
-	//fmt.Println(retURL, "req url")
+
 	retBody := fmt.Sprintf("%s%s", retURL, hashString)
-	w.Header().Set("Content-Type", "text/plain")
-	w.WriteHeader(201)
+
+	w.WriteHeader(CodeStatus)
 	w.Write([]byte(retBody))
 }
 
@@ -41,7 +64,7 @@ func (s *Server) GetLinkAdd(w http.ResponseWriter, r *http.Request) {
 		htmlFile, err := os.Open("static/error404.html")
 		if err != nil {
 			//error
-			fmt.Println("Ошибка открытия файла:", err)
+			//fmt.Println("Ошибка открытия файла:", err)
 			return
 		}
 		defer htmlFile.Close()
@@ -49,7 +72,7 @@ func (s *Server) GetLinkAdd(w http.ResponseWriter, r *http.Request) {
 		htmlData, err := io.ReadAll(htmlFile)
 		if err != nil {
 			//error
-			fmt.Println("Ошибка чтения файла:", err)
+			// fmt.Println("Ошибка чтения файла:", err)
 			return
 		}
 		w.WriteHeader(404)
@@ -80,7 +103,7 @@ func (s *Server) PostAPILinkAddBatch(w http.ResponseWriter, r *http.Request) {
 	err := json.Unmarshal(jsonReq, &reqBody)
 
 	if err != nil {
-		fmt.Println("Ошибка при парсинге JSON:", err)
+		// fmt.Println("Ошибка при парсинге JSON:", err)
 		return
 	}
 
@@ -107,7 +130,7 @@ func (s *Server) PostAPILinkAddBatch(w http.ResponseWriter, r *http.Request) {
 	jsonAns, err := json.Marshal(answBody)
 
 	if err != nil {
-		fmt.Println("Ошибка при преобразовании структуры в JSON:", err)
+		// fmt.Println("Ошибка при преобразовании структуры в JSON:", err)
 		return
 	}
 
@@ -116,62 +139,69 @@ func (s *Server) PostAPILinkAddBatch(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(jsonAns))
 }
 
-func (s *Server) PostAPILinkAdd(w http.ResponseWriter, r *http.Request) {
+// func (s *Server) PostAPILinkAdd(w http.ResponseWriter, r *http.Request) {
 
-	var req struct {
-		URL string `json:"url"`
-	}
+// 	w.Header().Set("Content-Type", "application/json")
+// 	CodeStatus := 201
 
-	jsonReq, _ := io.ReadAll(r.Body)
+// 	var req struct {
+// 		URL string `json:"url"`
+// 	}
 
-	err := json.Unmarshal(jsonReq, &req)
+// 	jsonReq, _ := io.ReadAll(r.Body)
 
-	if err != nil {
-		fmt.Println("Ошибка при парсинге JSON:", err)
-		return
-	}
+// 	err := json.Unmarshal(jsonReq, &req)
 
-	hashString := code.CodeString(req.URL)
+// 	if err != nil {
+// 		fmt.Println("Ошибка при парсинге JSON:", err)
+// 		return
+// 	}
 
-	// var shortPath string
+// 	hashString := code.CodeString(req.URL)
 
-	err = s.storage.Add(r.Context(), hashString, req.URL)
+// 	// var shortPath string
 
-	if errors.Is(err, storage.ErrConflict) {
-		// ошибка специфична для случая конфликта имён пользователей
-		w.WriteHeader(409)
-		hashString, err = s.storage.FindShortByFullPath(r.Context(), req.URL)
-	}
+// 	err = s.storage.Add(r.Context(), hashString, req.URL)
 
-	if err != nil {
-		fmt.Println("Ошибка работы с хранилищем", err)
-		return
-	}
+// 	if err != nil {
 
-	retURL := ""
-	if s.config.BaseURL == "" {
-		requestURL := r.Host
-		retURL = fmt.Sprintf("%s%s/", "http://", requestURL)
-	} else {
-		retURL = fmt.Sprintf("%s/", s.config.BaseURL)
-	}
+// 		if errors.Is(err, storage.ErrConflict) {
+// 			// ошибка специфична для случая конфликта имён пользователей
+// 			// w.WriteHeader(409)
+// 			CodeStatus = 409
+// 			fmt.Println("!!!!!!!!!!!!Ошибка работы с хранилищем", err)
 
-	retBody := fmt.Sprintf("%s%s", retURL, hashString)
+// 			hashString, _ = s.storage.FindShortByFullPath(r.Context(), req.URL)
+// 		} else {
 
-	var ans struct {
-		Result string
-	}
+// 			fmt.Println("Ошибка работы с хранилищем (((((", err)
+// 			return
+// 		}
+// 	}
 
-	ans.Result = retBody
+// 	retURL := ""
+// 	if s.config.BaseURL == "" {
+// 		requestURL := r.Host
+// 		retURL = fmt.Sprintf("%s%s/", "http://", requestURL)
+// 	} else {
+// 		retURL = fmt.Sprintf("%s/", s.config.BaseURL)
+// 	}
 
-	jsonAns, err := json.Marshal(ans)
+// 	retBody := fmt.Sprintf("%s%s", retURL, hashString)
 
-	if err != nil {
-		fmt.Println("Ошибка при преобразовании структуры в JSON:", err)
-		return
-	}
+// 	var ans struct {
+// 		Result string
+// 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(201)
-	w.Write([]byte(jsonAns))
-}
+// 	ans.Result = retBody
+
+// 	jsonAns, err := json.Marshal(ans)
+
+// 	if err != nil {
+// 		fmt.Println("Ошибка при преобразовании структуры в JSON:", err)
+// 		return
+// 	}
+
+// 	w.WriteHeader(CodeStatus)
+// 	w.Write([]byte(jsonAns))
+// }
