@@ -1,11 +1,10 @@
 package storage
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
-
-	"github.com/Megis82/shortener/internal/config"
 )
 
 type MemoryStorage struct {
@@ -24,21 +23,52 @@ func (m *MemoryStorage) Init() error {
 	return nil
 }
 
-func (m *MemoryStorage) Add(key string, value string) error {
+func (m *MemoryStorage) Add(ctx context.Context, key string, value string) error {
+	if _, ok := m.data[key]; ok {
+		return ErrConflict
+	}
 	m.data[key] = value
 	return nil
 }
 
-func (m *MemoryStorage) Find(key string) (string, bool, error) {
-	value, ok := m.data[key]
-	return value, ok, nil
+func (m *MemoryStorage) AddBatch(ctx context.Context, values map[string]string) error {
+	for key, val := range values {
+		m.data[key] = val
+	}
+	return nil
 }
 
-func NewMemoryStorage(config config.Config) (*MemoryStorage, error) {
+func (m *MemoryStorage) Find(ctx context.Context, key string) (string, error) {
+	value := ""
+	ok := true
+	if value, ok = m.data[key]; !ok {
+		value = ""
+	}
+	return value, nil
+}
 
-	mem := &MemoryStorage{data: make(map[string]string), fileStorage: config.FileStorage}
+func (m *MemoryStorage) FindShortByFullPath(ctx context.Context, value string) (string, error) {
+	for key, val := range m.data {
+		if val == value {
+			return key, nil
+		}
+	}
+	return "", nil
+}
 
-	file, err := os.OpenFile(config.FileStorage, os.O_RDONLY, 0644)
+func (m *MemoryStorage) Ping(ctx context.Context) error {
+	return nil
+}
+
+func NewMemoryStorage(fileStorage string) (*MemoryStorage, error) {
+
+	mem := &MemoryStorage{data: make(map[string]string), fileStorage: fileStorage}
+
+	if fileStorage == "" {
+		return mem, nil
+	}
+
+	file, err := os.OpenFile(fileStorage, os.O_RDONLY, 0644)
 
 	if os.IsNotExist(err) {
 		return mem, nil
@@ -68,25 +98,18 @@ func NewMemoryStorage(config config.Config) (*MemoryStorage, error) {
 	}
 
 	for _, str := range data {
-		mem.Add(str.ShortURL, str.OriginalURL)
+		mem.Add(context.Background(), str.ShortURL, str.OriginalURL)
 	}
 
 	return mem, nil
 }
 
 func (m *MemoryStorage) Close() error {
+	if m.fileStorage == "" {
+		return nil
+	}
 
 	_ = os.Remove(m.fileStorage)
-
-	// if err != nil {
-	// 	return err
-	// }
-
-	//file, _ := os.OpenFile(m.fileStorage, os.O_CREATE, 0644)
-
-	// if err != nil {
-	// 	return err
-	// }
 
 	data := make([]MemoryStorageSave, 0)
 

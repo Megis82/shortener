@@ -8,7 +8,7 @@ import (
 func NewLogger() (*zap.Logger, error) {
 	config := zap.Config{
 		Encoding:         "json",
-		Level:            zap.NewAtomicLevelAt(zapcore.InfoLevel),
+		Level:            zap.NewAtomicLevelAt(zapcore.ErrorLevel),
 		OutputPaths:      []string{"stdout"},
 		ErrorOutputPaths: []string{"stderr"},
 		EncoderConfig:    zap.NewProductionEncoderConfig(),

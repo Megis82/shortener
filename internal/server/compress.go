@@ -28,9 +28,10 @@ func (c *compressWriter) Write(p []byte) (int, error) {
 }
 
 func (c *compressWriter) WriteHeader(statusCode int) {
-	if statusCode < 300 {
+	if statusCode < 300 || statusCode == 409 || statusCode == 307 {
 		c.w.Header().Set("Content-Encoding", "gzip")
 	}
+
 	c.w.WriteHeader(statusCode)
 }
 
@@ -86,6 +87,7 @@ func GzipHandle(next http.Handler) http.Handler {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
+			w.WriteHeader(r.Response.StatusCode)
 			r.Body = cr
 			defer cr.Close()
 		}
