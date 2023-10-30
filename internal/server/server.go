@@ -29,15 +29,11 @@ func NewServer(conf config.Config, stor storage.DataStorage, log *zap.Logger) (*
 func (s *Server) routes() {
 	s.routers.Use(s.WithLogging)
 	s.routers.Use(GzipHandle)
-	//s.routers.Use(JSONHandle)
 	s.routers.Get("/ping", s.handleGetHealth)
 	s.routers.Get("/{shortURL}", s.GetLinkAdd)
 	s.routers.Post("/", s.PostLinkAdd)
-	// s.routers.With(JSONHandle).Post("/api/shorten", s.PostAPILinkAdd)
 	s.routers.With(JSONHandle).Post("/api/shorten", s.PostLinkAdd)
-	//s.routers.Post("/api/shorten", s.PostLinkAdd)
 	s.routers.Post("/api/shorten/batch", s.PostAPILinkAddBatch)
-
 }
 
 func (s *Server) Run(ctx context.Context) {
@@ -66,7 +62,5 @@ func (s *Server) Run(ctx context.Context) {
 		// Error starting or closing listener:
 		log.Fatalf("HTTP server ListenAndServe: %v", err)
 	}
-
 	<-idleConnsClosed
-
 }

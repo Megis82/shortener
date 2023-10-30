@@ -3,19 +3,15 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"strings"
 	"time"
 
-	"github.com/jackc/pgconn"
-	"github.com/jackc/pgerrcode"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 const driverName = "pgx"
 
 type SQLStorage struct {
-	//data        map[string]string
 	DatabaseDSN string
 	pool        *sql.DB
 }
@@ -29,7 +25,6 @@ func (m *SQLStorage) Init() error {
 
 	var err error
 	m.pool, err = sql.Open(driverName, m.DatabaseDSN)
-	// fmt.Println(err)
 
 	if err != nil {
 		return err
@@ -71,11 +66,8 @@ func (m *SQLStorage) Add(ctx context.Context, key string, value string) error {
 
 	if err != nil {
 		if strings.Contains(err.Error(), "SQLSTATE 23505") {
-			//fmt.Println("error with dublicate key!!!!!!!!!! ", err)
 			err = ErrConflict
-
 		}
-
 	}
 
 	return err
@@ -105,43 +97,30 @@ func (m *SQLStorage) AddBatch(ctx context.Context, values map[string]string) err
 	for key, val := range values {
 		_, err := stmt.ExecContext(ctx, key, val)
 		if err != nil {
-			//fmt.Println("error multi with dublicate key ", err)
-
-			var pgErr *pgconn.PgError
-			if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) {
-				// fmt.Println("error multi with dublicate key set to ", err)
+			if strings.Contains(err.Error(), "SQLSTATE 23505") {
 				err = ErrConflict
 				return err
 			}
 		}
 	}
 	return tx.Commit()
-
 }
 
-func (m *SQLStorage) Find(ctx context.Context, key string) (string, bool, error) {
+func (m *SQLStorage) Find(ctx context.Context, key string) (string, error) {
 
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 
-	var fullURL string
-	recFound := true
+	fullURL := ""
 
 	err := m.pool.QueryRowContext(ctx,
 		"SELECT shdb.fullurl FROM shortdb as shdb WHERE shdb.shorturl = $1 ", key).Scan(&fullURL)
 
-	switch {
-	case err == sql.ErrNoRows:
-		recFound = false
-		// fmt.Printf("no user with id %q\n", key)
-	case err != nil:
-		recFound = false
-		// fmt.Printf("query error: %v\n", err)
-	default:
-		// fmt.Printf("for shot url %q, full url is %s\n", key, fullURL)
+	if err == sql.ErrNoRows {
+		err = nil
 	}
 
-	return fullURL, recFound, err
+	return fullURL, err
 }
 
 func (m *SQLStorage) FindShortByFullPath(ctx context.Context, value string) (string, error) {
@@ -149,18 +128,13 @@ func (m *SQLStorage) FindShortByFullPath(ctx context.Context, value string) (str
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 
-	var shortURL string
+	shortURL := ""
 
 	err := m.pool.QueryRowContext(ctx,
 		"SELECT shdb.shorturl FROM shortdb as shdb WHERE shdb.fullurl = $1 ", value).Scan(&shortURL)
 
-	switch {
-	case err == sql.ErrNoRows:
-		// fmt.Printf("no user with id %q\n", value)
-	case err != nil:
-		// fmt.Printf("query error: %v\n", err)
-	default:
-		// fmt.Printf("for shot url %q, full url is %s\n", value, shortURL)
+	if err == sql.ErrNoRows {
+		err = nil
 	}
 
 	return shortURL, err

@@ -24,6 +24,9 @@ func (m *MemoryStorage) Init() error {
 }
 
 func (m *MemoryStorage) Add(ctx context.Context, key string, value string) error {
+	if _, ok := m.data[key]; ok {
+		return ErrConflict
+	}
 	m.data[key] = value
 	return nil
 }
@@ -35,9 +38,13 @@ func (m *MemoryStorage) AddBatch(ctx context.Context, values map[string]string) 
 	return nil
 }
 
-func (m *MemoryStorage) Find(ctx context.Context, key string) (string, bool, error) {
-	value, ok := m.data[key]
-	return value, ok, nil
+func (m *MemoryStorage) Find(ctx context.Context, key string) (string, error) {
+	value := ""
+	ok := true
+	if value, ok = m.data[key]; !ok {
+		value = ""
+	}
+	return value, nil
 }
 
 func (m *MemoryStorage) FindShortByFullPath(ctx context.Context, value string) (string, error) {

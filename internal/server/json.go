@@ -96,54 +96,21 @@ func JSONHandle(next http.Handler) http.Handler {
 		supportsJSON := strings.Contains(contentTypes, "application/json")
 
 		if supportsJSON {
-
 			jr := newJSONReader(r.Body)
 			r.Body = jr
 			defer jr.Close()
+		}
 
+		contentAccept := r.Header.Get("Accept")
+		AcceptJSON := strings.Contains(contentAccept, "application/json")
+
+		if AcceptJSON {
 			jw := newJSONWriter(w)
 			ow = jw
 			ow.Header().Set("Content-Type", "application/json")
-
 		}
 
 		next.ServeHTTP(ow, r)
 	}
 	return http.HandlerFunc(jsonFn)
 }
-
-// func JSONMiddleware(next http.Handler) http.Handler {
-// 	jsonFn := func(w http.ResponseWriter, r *http.Request) {
-// 		jw := w
-// 		contentTypes := r.Header.Get("Content-Type")
-// 		supportsJSON := strings.Contains(contentTypes, "application/json")
-// 		if supportsJSON {
-// 			cw := newJSONWriter(w)
-// 			ow = cw
-// 			defer cw.Close()
-// 		}
-
-// 	 // Проверяем, что Content-Type запроса является application/json
-// 	 if r.Header.Get("Content-Type") != "application/json" {
-// 	  http.Error(w, "Expecting application/json", http.StatusBadRequest)
-// 	  return
-// 	 }
-
-// 	 // Читаем и декодируем JSON данные из тела запроса
-// 	 decoder := json.NewDecoder(r.Body)
-// 	 defer r.Body.Close()
-
-// 	 var data interface{}
-// 	 err := decoder.Decode(&data)
-// 	 if err != nil {
-// 	  http.Error(w, "Invalid JSON data", http.StatusBadRequest)
-// 	  return
-// 	 }
-
-// 	 // Проход по JSON данным и выполнение нужных операций
-// 	 // ...
-
-// 	 // Передача управления следующему обработчику
-// 	 next.ServeHTTP(w, r)
-// 	})
-//    }

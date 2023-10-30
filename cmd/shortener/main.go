@@ -24,18 +24,6 @@ func main() {
 		return
 	}
 
-	// storage, err := storage.NewMemoryStorage(config.FileStorage)
-	// if err != nil {
-	// 	return
-	// }
-	// defer storage.Close()
-
-	// storage, err := storage.NewSQLStorage(config.DatabaseDSN)
-	// if err != nil {
-	// 	return
-	// }
-	// defer storage.Close()
-
 	storage, err := storage.NewStorage(config)
 
 	if err != nil {
